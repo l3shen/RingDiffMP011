@@ -10,7 +10,7 @@ from scipy import ndimage as ndi
 from skimage.restoration import denoise_bilateral, denoise_wavelet
 from skimage import feature, filters
 import cv2
-
+from skued import diff_register, shift_image, diffread
 
 
 class DataSet:
@@ -109,10 +109,36 @@ class DataSet:
         showMask = True
         beamBlockFileDirec = "C:\\Users\\MP011 User\\PycharmProjects\\RingDiffMP011\\beamBlockMask.png"
         beamBlock = plt.imread(beamBlockFileDirec)
+        # TODO: Figure out why imported PNG forms a 3D array?
+        # The below temporary fix seems to work and forms a True/False mask.
+        beamBlock = beamBlock[:,:,0] == 0
+        print(beamBlock)
+        print(beamBlock.shape)
+        # np.ma.make_mask(beamBlock)
 
         if showMask:
             plt.imshow(beamBlock)
             plt.show(block=True)
+
+        # Load in first image as a reference, assuming first two images are the background images.
+        # TODO: Add separate folder for storing background substraction images to simplify file IO.
+        firstImage = direc + "\\" + images[3]
+        ref = diffread(firstImage)
+        print(ref.shape)
+
+        # Using a test image.
+        testImage = diffread(direc + "\\" + images[10])
+        print(testImage.shape)
+
+        # Do the shift thing and check difference.
+        shift = diff_register(testImage, reference=ref, mask=beamBlock)
+        im = shift_image(testImage, shift)
+        #plt.imshow(im)
+        plt.imshow(testImage - ref)
+        plt.show(block=True)
+        plt.imshow(ref - im)
+        plt.show(block=True)
+
 
 
 
@@ -126,8 +152,6 @@ def main():
     scanDirectory = "E:\\Exp\\2019-03-28\\scans\\scan5"
     tetraceneData = DataSet('tetracene polycrystalline')
     tetraceneData.loadData(scanDirectory)
-    print(tetraceneData.tp)
-    print(tetraceneData.scanMetadata['scan number'])
 
 
 if __name__ == "__main__":
