@@ -11,6 +11,8 @@ from skimage.restoration import denoise_bilateral, denoise_wavelet
 from skimage import feature, filters
 import cv2
 
+
+
 class DataSet:
 
     tp = []
@@ -102,7 +104,18 @@ class DataSet:
         #         #         plt.show(block=True)
         #         #         break
 
-        # For now, load up
+        # For now, load up beam block rectangle (general shape) and convert to mask.
+        # TODO: Make this a user defined path.
+        showMask = True
+        beamBlockFileDirec = "C:\\Users\\MP011 User\\PycharmProjects\\RingDiffMP011\\beamBlockMask.png"
+        beamBlock = plt.imread(beamBlockFileDirec)
+
+        if showMask:
+            plt.imshow(beamBlock)
+            plt.show(block=True)
+
+
+
 
 
 
