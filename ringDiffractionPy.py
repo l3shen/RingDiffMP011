@@ -10,7 +10,7 @@ from scipy import ndimage as ndi
 from skimage.restoration import denoise_bilateral, denoise_wavelet
 from skimage import feature, filters
 import cv2
-from skued import diff_register, shift_image, diffread
+from skued import diff_register, shift_image, diffread, baseline_dwt, align
 
 
 class DataSet:
@@ -107,7 +107,7 @@ class DataSet:
         # For now, load up beam block rectangle (general shape) and convert to mask.
         # TODO: Make this a user defined path.
         showMask = True
-        beamBlockFileDirec = "C:\\Users\\MP011 User\\PycharmProjects\\RingDiffMP011\\beamBlockMask.png"
+        beamBlockFileDirec = "C:\\Users\\MP011 User\\PycharmProjects\\RingDiffMP011\\beamBlockMask7.png"
         beamBlock = plt.imread(beamBlockFileDirec)
         # TODO: Figure out why imported PNG forms a 3D array?
         # The below temporary fix seems to work and forms a True/False mask.
@@ -123,23 +123,32 @@ class DataSet:
         # Load in first image as a reference, assuming first two images are the background images.
         # TODO: Add separate folder for storing background substraction images to simplify file IO.
         firstImage = direc + "\\" + images[3]
+        print(firstImage)
         ref = diffread(firstImage)
+        ref = baseline_dwt(ref, max_iter = 250, level = 1, wavelet = 'sym2', axis = (0, 1))
+        mask = np.zeros_like(ref, dtype=np.bool)
+        print(mask)
         print(ref.shape)
 
         # Using a test image.
-        testImage = diffread(direc + "\\" + images[10])
+        print(len(images) - 2)
+        testImage = diffread(direc + "\\" + images[158])
+        testImage = baseline_dwt(testImage, max_iter = 250, level = 1, wavelet = 'sym2', axis = (0, 1))
         print(testImage.shape)
 
         # Do the shift thing and check difference.
         shift = diff_register(testImage, reference=ref, mask=beamBlock)
         im = shift_image(testImage, shift)
-        #plt.imshow(im)
-        plt.imshow(testImage - ref)
+        plt.imshow(im)
+        print(shift)
         plt.show(block=True)
-        plt.imshow(ref - im)
+        plt.imshow(testImage - ref, cmap='jet')
+        plt.show(block=True)
+        plt.imshow(im - ref, cmap='jet')
         plt.show(block=True)
 
-
+        # Test of Hough circles method on first image.
+        # circles = cv2.HoughCircles(cv2.imread(firstImage), cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30, minRadius=0, maxRadius=0)
 
 
 
